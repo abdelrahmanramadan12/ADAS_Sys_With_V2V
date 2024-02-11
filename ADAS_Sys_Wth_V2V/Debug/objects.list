@@ -1,5 +1,5 @@
-"./Core/Src/Ultrasonic/HCSR04/HCSR04_Program.o"
-"./Core/Src/Ultrasonic/US/USvehicle_Program.o"
+"./Core/Src/HAL/HCSR04/HCSR04_Program.o"
+"./Core/Src/SERVICE/US/USvehicle_Program.o"
 "./Core/Src/main.o"
 "./Core/Src/stm32f4xx_hal_msp.o"
 "./Core/Src/stm32f4xx_it.o"
