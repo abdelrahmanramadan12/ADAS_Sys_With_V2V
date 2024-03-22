@@ -15,18 +15,14 @@
  ***********************************************************************************************************************/
 
 #include "stm32f4xx.h"
-#include "../../HAL/HCSR04/HCSR04_Interface.h"
-#include "USvehicle_Confg.h"
-#include "USvehicle_Interface.h"
-
+#include "APP_USvehicle_Confg.h"
+#include "APP_USvehicle_Interface.h"
+#include "ECU_Sensors_Interface.h"
 /**____________________________________________________________________________________________________________________**/
 
-extern TIM_HandleTypeDef htim1;
-extern TIM_HandleTypeDef htim2;
-extern TIM_HandleTypeDef htim3;
-extern TIM_HandleTypeDef htim4;
-extern TIM_HandleTypeDef htim5;
-extern TIM_HandleTypeDef htim6;
+
+
+
 
 
 
@@ -45,10 +41,14 @@ extern TIM_HandleTypeDef htim6;
  *                     - SUCCESS: The distance measurement was successful.
  *                     - ERROR: An error occurred during the measurement process.
  */
-ErrorStatus get_Distance_From_ForwardRight_US (uint32_t *ForwardRight_Dist)
+void APP_Get_Distance_Init(void)
+{
+	Ultrasonics_Init();
+}
+ErrorStatus APP_get_Distance_From_ForwardRight_US (uint16_t *ForwardRight_Dist)
 {
 	ErrorStatus Error_St=SUCCESS;
-	if (Get_HCSR04_Distance(F_RIGHT_TIM,F_RIGHT_CHANNEL,TRIG_1,ForwardRight_Dist)==ERROR)
+	if (Get_HCSR04_Distance(FORWARD_RIGHT,ForwardRight_Dist)==ERROR)
 	{
 		Error_St=ERROR;
 	}
@@ -66,10 +66,10 @@ ErrorStatus get_Distance_From_ForwardRight_US (uint32_t *ForwardRight_Dist)
  *                     - SUCCESS: The distance measurement was successful.
  *                     - ERROR: An error occurred during the measurement process.
  */
-ErrorStatus get_Distance_From_ForwardLeft_US (uint32_t *ForwardLeft_Dist)
+ErrorStatus APP_get_Distance_From_ForwardLeft_US (uint16_t *ForwardLeft_Dist)
 {
 	ErrorStatus Error_St=SUCCESS;
-	if (Get_HCSR04_Distance(F_LEFT_TIM,F_LEFT_CHANNEL,TRIG_2,ForwardLeft_Dist)==ERROR)
+	if (Get_HCSR04_Distance(FORWARD_LIFT,ForwardLeft_Dist)==ERROR)
 	{
 		Error_St=ERROR;
 	}
@@ -87,10 +87,10 @@ ErrorStatus get_Distance_From_ForwardLeft_US (uint32_t *ForwardLeft_Dist)
  *                     - SUCCESS: The distance measurement was successful.
  *                     - ERROR: An error occurred during the measurement process.
  */
-ErrorStatus get_Distance_From_ForwardMid_US (uint32_t *ForwardMid_Dist)
+ErrorStatus APP_get_Distance_From_ForwardMid_US (uint16_t *ForwardMid_Dist)
 {
 	ErrorStatus Error_St=SUCCESS;
-	if (Get_HCSR04_Distance(F_MID_TIM,F_MID_CHANNEL,TRIG_3,ForwardMid_Dist)==ERROR)
+	if (Get_HCSR04_Distance(FORWARD_MIDDLE,ForwardMid_Dist)==ERROR)
 	{
 		Error_St=ERROR;
 	}
@@ -112,10 +112,10 @@ ErrorStatus get_Distance_From_ForwardMid_US (uint32_t *ForwardMid_Dist)
  *                     - SUCCESS: The distance measurement was successful.
  *                     - ERROR: An error occurred during the measurement process.
  */
-ErrorStatus get_Distance_From_BackRight_US (uint32_t *BackRight_Dist)
+ErrorStatus APP_get_Distance_From_BackRight_US (uint16_t *BackRight_Dist)
 {
 	ErrorStatus Error_St=SUCCESS;
-	if (Get_HCSR04_Distance(B_RIGHT_TIM,B_RIGHT_CHANNEL,TRIG_4,BackRight_Dist)==ERROR)
+	if (Get_HCSR04_Distance(BACKWARD_RIGHT,BackRight_Dist)==ERROR)
 	{
 		Error_St=ERROR;
 	}
@@ -134,10 +134,10 @@ ErrorStatus get_Distance_From_BackRight_US (uint32_t *BackRight_Dist)
  *                     - SUCCESS: The distance measurement was successful.
  *                     - ERROR: An error occurred during the measurement process.
  */
-ErrorStatus get_Distance_From_BackLeft_US (uint32_t *BackLeft_Dist)
+ErrorStatus APP_get_Distance_From_BackLeft_US (uint16_t *BackLeft_Dist)
 {
 	ErrorStatus Error_St=SUCCESS;
-	if (Get_HCSR04_Distance(B_LEFT_TIM,B_LEFT_CHANNEL,TRIG_5,BackLeft_Dist)==ERROR)
+	if (Get_HCSR04_Distance(BACKWARD_LIFT,BackLeft_Dist)==ERROR)
 	{
 		Error_St=ERROR;
 	}
@@ -155,10 +155,10 @@ ErrorStatus get_Distance_From_BackLeft_US (uint32_t *BackLeft_Dist)
  *                     - SUCCESS: The distance measurement was successful.
  *                     - ERROR: An error occurred during the measurement process.
  */
-ErrorStatus get_Distance_From_BackMid_US (uint32_t *BackMid_Dist)
+ErrorStatus APP_get_Distance_From_BackMid_US (uint16_t *BackMid_Dist)
 {
 	ErrorStatus Error_St=SUCCESS;
-	if (Get_HCSR04_Distance(B_MID_TIM,B_MID_CHANNEL,TRIG_6,BackMid_Dist)==ERROR)
+	if (Get_HCSR04_Distance(BACKWARD_MIDDLE,BackMid_Dist)==ERROR)
 	{
 		Error_St=ERROR;
 	}

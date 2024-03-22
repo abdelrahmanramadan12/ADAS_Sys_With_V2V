@@ -1,33 +1,32 @@
 /*
- *      @file   HCSR04_Program.c
+ * ECU_Sensors.c
  *
- *      Created on: Dec 22, 2023
- *      @author: Abdelrahman Ramadan
- *      @brief The HCSR04 source file ,including functions' definitions
- *             function provides delay (in microseconds), function provides the distance in (cm)
- *
+ *  Created on: Feb 29, 2024
+ *      Author: hp
  */
+
 
 /***********************************************************************************************************************
  ____________________________________Includes___________________________________________________________________________
 
  ***********************************************************************************************************************/
 #include "stm32f4xx.h"
-#include "HCSR04_Cfg.h"
-#include "HCSR04_Interface.h"
+#include "ECU_Sensors_Interface.h"
+#include "HAL_Interface.h"
 
 /***********************************************************************************************************************
  ____________________________________Global variables___________________________________________________________________
 
  ***********************************************************************************************************************/
-uint32_t IC_Val1 = 0;          /** first captured value (rising)                     **/
-uint32_t IC_Val2 = 0;          /** second captured value (falling)                   **/
-uint32_t Difference = 0;       /** difference between two values "IC_Val1","IC_Val2" **/
-uint8_t  Is_FirstVal_Captured = 0; /** Flag for the value captured                       **/
-
-
+static uint32_t IC_Val1 = 0;          /** first captured value (rising)                     **/
+static uint32_t IC_Val2 = 0;          /** second captured value (falling)                   **/
+static uint32_t Difference = 0;       /** difference between two values "IC_Val1","IC_Val2" **/
+static uint8_t Is_FirstVal_Captured = 0; /** Flag for the value captured                       **/
+static uint8_t counter=0;
+static uint8_t start=0;
 /***********************************************************************************************************************
  ____________________________________functions' definitions_____________________________________________________________
+
 
  ***********************************************************************************************************************/
 
@@ -38,6 +37,12 @@ uint8_t  Is_FirstVal_Captured = 0; /** Flag for the value captured              
   * @param  delay_us specifies the delay time length, in microseconds, *htim for select the timer to generate the delay.
   * @retval None
   */
+
+void Ultrasonics_Init(void)
+{
+MX_TIM3_Init();
+MX_TIM4_Init();
+}
 void delay_us (uint16_t delay_us,TIM_HandleTypeDef *htim )
 {
 
@@ -57,55 +62,22 @@ void delay_us (uint16_t delay_us,TIM_HandleTypeDef *htim )
   *                     - SUCCESS: The distance measurement was successful.
   *                     - ERROR: An error occurred during the measurement process.
   */
-ErrorStatus  Get_HCSR04_Distance (TIM_HandleTypeDef *htim , TIM_CHANNEL_t TIM_CHANNEL_Num_, TRIG_PIN_t TRIG_Num, uint32_t *Distance)
+ErrorStatus  Get_HCSR04_Distance (Ultrasonics_Index ultrasonic,uint16_t* Distance)
 {
 	ErrorStatus  Error_Status =SUCCESS;    /** define error status as success **/
 	uint32_t timeOut =0;                   /**var for timeout **/
 
-	HAL_TIM_IC_Start_IT(htim, TIM_CHANNEL_Num_);
 
+	HAL_TIM_IC_Start_IT(Ultrasonics[ultrasonic].TIMER,Ultrasonics[ultrasonic].TIM_CHANNEL);
 
-	switch (TRIG_Num) {
-		case TRIG_1:
-				HAL_GPIO_WritePin(TRIG_PORT, TRIG_1, GPIO_PIN_SET);    /** Set TRIG pin HIGH**/
-				delay_us(10,htim);  /** wait for 10 us **/
-				HAL_GPIO_WritePin(TRIG_PORT, TRIG_1, GPIO_PIN_RESET);  /**Set TRIG pin low  **/
-			break;
+	HAL_GPIO_WritePin(Ultrasonics[ultrasonic].ULTRASONIC_TRIG_port,Ultrasonics[ultrasonic].ULTRASONIC_TRIG_PIN, GPIO_PIN_SET);    /** Set TRIG pin HIGH**/
 
-		case TRIG_2:
-				HAL_GPIO_WritePin(TRIG_PORT, TRIG_2, GPIO_PIN_SET);    /** Set TRIG pin HIGH**/
-				delay_us(10,htim);  /** wait for 10 us **/
-				HAL_GPIO_WritePin(TRIG_PORT, TRIG_2, GPIO_PIN_RESET);  /**Set TRIG pin low  **/
-			break;
+	delay_us(10,Ultrasonics[ultrasonic].TIMER);  /** wait for 10 us **/
 
-		case TRIG_3:
-				HAL_GPIO_WritePin(TRIG_PORT, TRIG_3, GPIO_PIN_SET);    /** Set TRIG pin HIGH**/
-				delay_us(10,htim);  /** wait for 10 us **/
-				HAL_GPIO_WritePin(TRIG_PORT, TRIG_3, GPIO_PIN_RESET);  /**Set TRIG pin low  **/
-			break;
+	HAL_GPIO_WritePin(Ultrasonics[ultrasonic].ULTRASONIC_TRIG_port,Ultrasonics[ultrasonic].ULTRASONIC_TRIG_PIN, GPIO_PIN_RESET);    /**Set TRIG pin low  **/
 
-		case TRIG_4:
-				HAL_GPIO_WritePin(TRIG_PORT, TRIG_4, GPIO_PIN_SET);    /** Set TRIG pin HIGH**/
-				delay_us(10,htim);  /** wait for 10 us **/
-				HAL_GPIO_WritePin(TRIG_PORT, TRIG_4, GPIO_PIN_RESET);  /**Set TRIG pin low  **/
-			break;
-
-		case TRIG_5:
-				HAL_GPIO_WritePin(TRIG_PORT, TRIG_5, GPIO_PIN_SET);    /** Set TRIG pin HIGH**/
-				delay_us(10,htim);  /** wait for 10 us **/
-				HAL_GPIO_WritePin(TRIG_PORT, TRIG_5, GPIO_PIN_RESET);  /**Set TRIG pin low  **/
-			break;
-
-		case TRIG_6:
-				HAL_GPIO_WritePin(TRIG_PORT, TRIG_6, GPIO_PIN_SET);    /** Set TRIG pin HIGH**/
-				delay_us(10,htim);  /** wait for 10 us **/
-				HAL_GPIO_WritePin(TRIG_PORT, TRIG_6, GPIO_PIN_RESET);  /**Set TRIG pin low  **/
-			break;
-		default:
-			break;
-	}
-
-	__HAL_TIM_ENABLE_IT(htim, TIM_IT_CC1);                   /**Enable timer      **/
+	__HAL_TIM_SET_COUNTER(Ultrasonics[ultrasonic].TIMER,0Ul);
+	//__HAL_TIM_ENABLE_IT(Ultrasonics[ultrasonic].TIMER, TIM_IT_CC1);                   /**Enable timer      **/
 
 /*___________________________________________________________________________________________________________________________*/
 
@@ -117,14 +89,17 @@ ErrorStatus  Get_HCSR04_Distance (TIM_HandleTypeDef *htim , TIM_CHANNEL_t TIM_CH
 
 		if (Is_FirstVal_Captured==2 )
 			{
+
+
+                    start=0;
 				if (IC_Val2 > IC_Val1)       /***if second value  captured > first value captured                       ****/
 				{
-					Difference = IC_Val2-IC_Val1;
+					Difference = IC_Val2-IC_Val1+((uint32_t)counter*0xffff);
 				}
 
 				else if (IC_Val1 > IC_Val2)  /***if second  value  captured < first value captured "overflow happened"  ****/
 				{
-					Difference = (0xffff - IC_Val1) + IC_Val2;
+					Difference = IC_Val1-IC_Val2+((uint32_t)counter*0xffff);
 				}
                 //Distance= Difference/58;
 
@@ -139,12 +114,16 @@ ErrorStatus  Get_HCSR04_Distance (TIM_HandleTypeDef *htim , TIM_CHANNEL_t TIM_CH
 			}
 
 	}
+
 	if (timeOut>=TIMEOUT)
 	          {
-					Error_Status=ERROR;
+
+		Error_Status=ERROR;
 	          }
 
-    return Error_Status;
+ 	counter=0;
+
+	return Error_Status;
 }
 
 
@@ -270,15 +249,16 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 }
 
 
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+ {
+	if(htim->Instance==TIM3 ||htim->Instance==TIM4 )
+	{
+        if(start)
+		counter++;
+	}
 
 
+ }
 
-
-/*
- * HCSR04_Program.c
- *
- *  Created on: Feb 10, 2024
- *      Author: abdel
- */
 
 
